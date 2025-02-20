@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: ./kompose convert -v -f docker-compose-linux.yaml
+    kompose.version: 1.34.0 (cbf2835db)
+  labels:
+    io.kompose.service: standalone
+  name: standalone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: standalone
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: ./kompose convert -v -f docker-compose-linux.yaml
+        kompose.version: 1.34.0 (cbf2835db)
+      labels:
+        io.kompose.service: standalone
+    spec:
+      containers:
+        - args:
+            - milvus
+            - run
+            - standalone
+          env:
+            - name: ETCD_ENDPOINTS
+              value: etcd-service:2379
+            - name: MINIO_ADDRESS
+              value: minio-service:9000
+          image: registry.cn-hangzhou.aliyuncs.com/ryang-test/milvus:v2.4.8  #milvusdb/milvus:v2.4.8
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:9091/healthz
+            failureThreshold: 3
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            timeoutSeconds: 20
+          name: milvus-standalone-local
+          ports:
+            - containerPort: 19530
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/milvus
+              name: standalone-claim0
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: regcred
+      volumes:
+        - name: standalone-claim0
+          persistentVolumeClaim:
+            claimName: standalone-claim0
+
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: ./kompose convert -v -f docker-compose-linux.yaml
+    kompose.version: 1.34.0 (cbf2835db)
+  labels:
+    io.kompose.service: standalone
+  name: standalone
+spec:
+  ports:
+    - name: "19540"
+      port: 19540
+      targetPort: 19530
+  selector:
+    io.kompose.service: standalone
+
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: standalone-claim0
+  name: standalone-claim0
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi

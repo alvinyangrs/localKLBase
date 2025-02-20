@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: qanything-local
+  name: qanything-local
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qanything-local
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: qanything-local
+    spec:
+      containers:
+        - args:
+            - /bin/bash
+            - -c
+            - cd /workspace/QAnything && bash scripts/entrypoint.sh
+          env:
+            - name: GPUID
+              value: "0"
+            - name: Gateway_IP
+              value: 0.0.0.0
+            - name: NCCL_LAUNCH_MODE
+              value: PARALLEL
+            - name: USER_IP
+              value: 0.0.0.0
+            - name: MYSQL_IP
+              value: mysql
+            - name: ES_IP
+              value: elasticsearch
+            - name: STANDALONE_IP
+              value: standalone
+          image: registry.cn-hangzhou.aliyuncs.com/ryang-test/qanything-linux:v1.5.1 #xixihahaliu01/qanything-linux:v1.5.1
+          name: qanything-container-local
+          securityContext:
+            privileged: true
+          stdin: true
+          tty: true
+          volumeMounts:
+            - mountPath: /workspace/QAnything
+              name: qanything-resource
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: regcred
+      volumes:
+        - name: qanything-resource
+          persistentVolumeClaim:
+            claimName: qanything-resource
+
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qanything
+spec:
+  selector:
+    app: qanything-local
+  ports:
+    - protocol: TCP
+      port: 8777
+      targetPort: 8777
+      nodePort: 30001
+  type: NodePort  # 或者 ClusterIP, LoadBalancer, ExternalName
