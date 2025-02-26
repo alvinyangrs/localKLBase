@@ -46,12 +46,12 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 20
           name: milvus-etcd-local
-          imagePullSecrets:
-            - name: regcred
           volumeMounts:
             - mountPath: /etcd
               name: etcd-claim0
       restartPolicy: Always
+      imagePullSecrets:
+        - name: regcred
       volumes:
         - name: etcd-claim0
           persistentVolumeClaim:

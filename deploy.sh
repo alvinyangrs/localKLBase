@@ -10,6 +10,7 @@ check_pod_status() {
     		return 1
 	fi
 
+	deployname=$(kubectl get deployment | grep $1 | awk '{print $1}')
 	iterations=10
 
 	i=1
@@ -52,8 +53,21 @@ fi
 echo 1
 podname=$(kubectl get pods | grep ubuntu | awk '{print $1}')
 #go into ubuntu deployment with bash
-kubectl cp prepare_in_ubuntu.sh $podname:/root/prepare_in_ubuntu.sh 
-kubectl exec  $podname -- bash /root/prepare_in_ubuntu.sh
+#kubectl cp prepare_in_ubuntu.sh $podname:/root/prepare_in_ubuntu.sh 
+kubectl exec  $podname -- bash -c "
+	apt update
+	apt install -y git
+	cd /mnt3
+	git config --global core.compression 0
+	git clone --recurse-submodules https://github.com/alvinyangrs/localKLBase.git
+	cp localKLBase/model_config.py localKLBase/QAnything/qanything_kernel/configs/model_config.py
+	cp -rf localKLBase/QAnything/third_party/es/plugins/* /mnt1
+	if [ -d /mnt1/lost_found ]; then 
+		rm -rf /mnt1/lost+found
+	fi
+	cp -rf localKLBase/QAnything/* /mnt2
+	"
+#kubectl exec  $podname -- bash /prepare_in_ubuntu.sh
 echo 2
 if [ -z "/home/sysadmin/localKLBase/localKLBase" ]; then
     echo "Ubuntu prepare fail, no localKLBase repo."
@@ -63,11 +77,11 @@ fi
 cd /home/sysadmin/localKLBase/localKLBase/QAnything
 #cp ../model_config.py qanything_kernel/configs/model_config.py
 
-kubectl cp  third_party/es/plugins $podname:/mnt1
-kubectl exec $podname -- bash rm -rf /mnt1/lost*
+#kubectl cp  third_party/es/plugins $podname:/mnt1
+#kubectl exec $podname -- bash rm -rf /mnt1/lost*
 
-kubectl cp  * $podname:/mnt2
-kubectl delete deployments.apps $podname 
+#kubectl cp  * $podname:/mnt2
+kubectl delete deployments.apps $deployname 
 
 
 kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/etcd-deployment-v1.1.yaml
