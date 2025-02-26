@@ -70,7 +70,7 @@ kubectl cp  * $podname:/mnt2
 kubectl delete deployments.apps $podname 
 
 
-kubectl apply -f /home/sysadmin/localKLBase/localKLBase/dockercompose/k8syaml/etcd-deployment-v1.1.yaml
+kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/etcd-deployment-v1.1.yaml
 check_pod_status "etcd"
 status=$?
 if [[ $status -ne 0]]; then
@@ -78,7 +78,7 @@ if [[ $status -ne 0]]; then
         exit
 fi
 
-kubectl apply -f /home/sysadmin/localKLBase/localKLBase/dockercompose/k8syaml/minio-deployment-v1.yaml
+kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/minio-deployment-v1.yaml
 check_pod_status "minio"
 status=$?
 if [[ $status -ne 0]]; then
@@ -86,7 +86,7 @@ if [[ $status -ne 0]]; then
         exit
 fi
 
-kubectl apply -f /home/sysadmin/localKLBase/localKLBase/dockercompose/k8syaml/standalone-deployment-v1.yaml
+kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/standalone-deployment-v1.yaml
 check_pod_status "standalone"
 status=$?
 if [[ $status -ne 0]]; then
@@ -94,7 +94,7 @@ if [[ $status -ne 0]]; then
         exit
 fi
 
-kubectl apply -f /home/sysadmin/localKLBase/localKLBase/dockercompose/k8syaml/mysql-deployment-v1.yaml
+kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/mysql-deployment-v1.yaml
 check_pod_status "mysql"
 status=$?
 if [[ $status -ne 0]]; then
@@ -102,7 +102,7 @@ if [[ $status -ne 0]]; then
         exit
 fi
 
-kubectl apply -f /home/sysadmin/localKLBase/localKLBase/dockercompose/k8syaml/elasticsearch-pod-v1.yaml
+kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/elasticsearch-pod-v1.yaml
 check_pod_status "elasticsearch"
 status=$?
 if [[ $status -ne 0]]; then
@@ -110,7 +110,7 @@ if [[ $status -ne 0]]; then
         exit
 fi
 
-kubectl apply -f /home/sysadmin/localKLBase/localKLBase/dockercompose/k8syaml/qanything-local-deployment-v1.yaml
+kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/qanything-local-deployment-v1.yaml
 check_pod_status "qanything"
 status=$?
 if [[ $status -ne 0]]; then
