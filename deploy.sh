@@ -34,8 +34,6 @@ check_pod_status() {
 
 
 
-cp model_config.py QAnything/qanything_kernel/configs/model_config.py
-
 kubectl create secret docker-registry regcred \
     --docker-server=registry.cn-hangzhou.aliyuncs.com \
     --docker-username=confucian_tju@hotmail.com \
@@ -63,6 +61,8 @@ if [ -z "/home/sysadmin/localKLBase/localKLBase" ]; then
 fi
 
 cd /home/sysadmin/localKLBase/localKLBase/QAnything
+#cp ../model_config.py qanything_kernel/configs/model_config.py
+
 kubectl cp  third_party/es/plugins $podname:/mnt1
 kubectl exec $podname -- bash rm -rf /mnt1/lost*
 
