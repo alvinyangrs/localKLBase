@@ -11,7 +11,7 @@ check_pod_status() {
 	fi
 
 	deployname=$(kubectl get deployment | grep $1 | awk '{print $1}')
-	iterations=10
+	iterations=30
 
 	i=1
 	while [ $i -le $iterations ]; do
@@ -21,7 +21,15 @@ check_pod_status() {
         		break
     		fi
 
-    		sleep 10
+		if [[ $pod_status == *"ContainerCreating"* ]]; then
+                        sleep 20
+			if [ i%10 -eq 0 ]; then
+				echo "$podname still creating"
+			fi
+		else
+			echo "$podname status $pod_status, check detail error status"
+			break
+                fi
 
     		i=$((i + 1))
 	done
@@ -58,7 +66,10 @@ kubectl exec  $podname -- bash -c "
 	apt update
 	apt install -y git
 	cd /mnt3
+	export HTTPS_PROXY=147.11.252.42:9090
 	git config --global core.compression 0
+	git config --global http.postBuffer 4524288000
+	git config --global https.postBuffer 4524288000
 	git clone --recurse-submodules https://github.com/alvinyangrs/localKLBase.git
 	cp localKLBase/model_config.py localKLBase/QAnything/qanything_kernel/configs/model_config.py
 	cp -rf localKLBase/QAnything/third_party/es/plugins/* /mnt1
@@ -87,7 +98,7 @@ kubectl delete deployments.apps $deployname
 kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/etcd-deployment-v1.1.yaml
 check_pod_status "etcd"
 status=$?
-if [[ $status -ne 0]]; then
+if [[ $status -ne $okok ]]; then
         echo "pod etcd status check fail, return $status"
         exit
 fi
@@ -95,7 +106,7 @@ fi
 kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/minio-deployment-v1.yaml
 check_pod_status "minio"
 status=$?
-if [[ $status -ne 0]]; then
+if [[ $status -ne $okok ]]; then
         echo "pod minio status check fail, return $status"
         exit
 fi
@@ -103,7 +114,7 @@ fi
 kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/standalone-deployment-v1.yaml
 check_pod_status "standalone"
 status=$?
-if [[ $status -ne 0]]; then
+if [[ $status -ne $okok ]]; then
         echo "pod standalone status check fail, return $status"
         exit
 fi
@@ -111,7 +122,7 @@ fi
 kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/mysql-deployment-v1.yaml
 check_pod_status "mysql"
 status=$?
-if [[ $status -ne 0]]; then
+if [[ $status -ne $okok ]]; then
         echo "pod mysql status check fail, return $status"
         exit
 fi
@@ -119,7 +130,7 @@ fi
 kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/elasticsearch-pod-v1.yaml
 check_pod_status "elasticsearch"
 status=$?
-if [[ $status -ne 0]]; then
+if [[ $status -ne $okok ]]; then
         echo "pod elasticsearch status check fail, return $status"
         exit
 fi
@@ -127,7 +138,7 @@ fi
 kubectl apply -f /home/sysadmin/localKLBase/localKLBase/k8syaml/qanything-local-deployment-v1.yaml
 check_pod_status "qanything"
 status=$?
-if [[ $status -ne 0]]; then
+if [[ $status -ne $okok ]]; then
         echo "pod qanyhing status check fail, return $status"
         exit
 fi

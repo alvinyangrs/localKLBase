@@ -31,11 +31,11 @@ spec:
             - name: USER_IP
               value: 0.0.0.0
             - name: MYSQL_IP
-              value: mysql
+              value: mysql-service
             - name: ES_IP
-              value: elasticsearch
+              value: elasticsearch-service
             - name: STANDALONE_IP
-              value: standalone
+              value: standalone-service
           image: registry.cn-hangzhou.aliyuncs.com/ryang-test/qanything-linux:v1.5.1 #xixihahaliu01/qanything-linux:v1.5.1
           name: qanything-container-local
           securityContext:
