@@ -31,7 +31,7 @@ spec:
         timeoutSeconds: 20
       name: es-container-local
       ports:
-        - containerPort: 9210
+        - containerPort: 9200
           protocol: TCP
       securityContext:
         privileged: true
@@ -78,6 +78,6 @@ spec:
   ports:
     - name: "9200"
       port: 9200
-      targetPort: 9210
+      targetPort: 9200
   selector:
     io.kompose.service: elasticsearch
