@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+spec:
+  selector:
+    matchLabels:
+      name: ollama
+  template:
+    metadata:
+      labels:
+        name: ollama
+    spec:
+      containers:
+      - name: ollama
+        image: registry.cn-hangzhou.aliyuncs.com/ryang-test/ollama:0.5.12 #ollama/ollama:latest
+        ports:
+        - name: http
+          containerPort: 11434
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /mnt1
+          name: local-models
+      imagePullSecrets:
+      - name: regcred
+      volumes:
+      - name: local-models
+        persistentVolumeClaim:
+          claimName: local-models
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: ollama
+#  labels:
+#    app: ollama
+#spec:
+#  type: LoadBalancer
+#  ports:
+#  - port: 11434
+#    targetPort: 11434
+#    protocol: TCP
+#    name: http
+#  selector:
+#    app: ollama
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+spec:
+  selector:
+    name: ollama
+  ports:
+    - protocol: TCP
+      port: 11434
+      targetPort: 11434
+      nodePort: 30002
+  type: NodePort 
