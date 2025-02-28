@@ -49,8 +49,99 @@ kubectl create secret docker-registry regcred \
     --docker-password=Yrs@201202 \
     --docker-email=confucian_tju@hotmail.com
 
-kubectl apply -f ubuntu-operation.yaml
-echo 0
+#kubectl apply -f ubuntu-operation.yaml
+kubectl apply -f - <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ubuntu-demo
+  template:
+    metadata:
+      name: ubuntu-pod
+      labels:
+        app: ubuntu-demo
+    spec:
+      containers:
+      - name: ubuntu-container
+        image: registry.cn-hangzhou.aliyuncs.com/ryang-test/ubuntu:24.04 #ubuntu:latest
+        # command: ["sleep", "3600"]  # Sleep for 3600s
+        # Get into the pod, replace with
+        command: ["/bin/bash"]
+        args: ["-c", "trap : TERM INT; sleep infinity & wait"]
+        env:
+        - name: ENV_VAR_NAME
+          value: "value"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: pvc1
+          mountPath: "/mnt1"
+        - name: pvc2
+          mountPath: "/mnt2"
+        - name: hostpath
+          mountPath: "/mnt3"
+
+      imagePullSecrets:
+      - name: regcred
+      volumes:
+      - name: pvc1
+        persistentVolumeClaim:
+          claimName: elasticsearch-plugin
+      - name: pvc2
+        persistentVolumeClaim:
+          claimName: qanything-resource
+      - name: hostpath
+        hostPath:
+          path: /home/sysadmin/localKLBase/  # 替换为宿主机上的实际路径
+          type: Directory
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - controller-0
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: elasticsearch-plugin
+  name: elasticsearch-plugin
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: cephfs
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: qanything-resource
+  name: qanything-resource
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: cephfs
+
+EOF
+
+
 okok=0
 check_pod_status "ubuntu"
 status=$?
